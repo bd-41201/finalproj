@@ -1,0 +1,22 @@
+{
+    "contents" : "",
+    "created" : 1433459472335.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "8651DF52",
+    "lastKnownWriteTime" : 32088439404888165,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "caption" : "loans_less_int",
+        "contentUrl" : "content?title=loans_less_int&file=d536101d442c4255bec5c345244d6de6.htm",
+        "displayedObservations" : "1000",
+        "displayedVariables" : 19,
+        "totalObservations" : "84277",
+        "variables" : "21"
+    },
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}

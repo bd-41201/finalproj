@@ -1,0 +1,22 @@
+{
+    "contents" : "",
+    "created" : 1433300575374.000,
+    "dirty" : false,
+    "encoding" : "",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "9A9A9E67",
+    "lastKnownWriteTime" : 21392300099829876,
+    "path" : null,
+    "project_path" : null,
+    "properties" : {
+        "caption" : "loanstats",
+        "contentUrl" : "content?title=loanstats&file=04bba943ee8e4c85944b521cbbd5f42c.htm",
+        "displayedObservations" : 1000,
+        "displayedVariables" : 18,
+        "totalObservations" : 84276,
+        "variables" : 18
+    },
+    "source_on_save" : false,
+    "type" : "r_dataframe"
+}
