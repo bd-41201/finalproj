@@ -1,3 +1,4 @@
 # Ignore data file for upload
 
 loanstats_trimmed.csv
+.Rproj.user

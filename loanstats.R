@@ -2,10 +2,10 @@
 
 ## SETUP
 ## read in the data
-loanstats <- read.csv("loanstats.csv",skip=1)
+loans <- read.csv("loanstats_trimmed.csv")
 
 ## grab some covariates of interest
-loans <- loanstats[,c(3,6,7,12,13,14,16,21,24,25,26,27,30,33,34,35,36,37,52)]
+# loans <- loanstats[,c(3,6,7,12,13,14,16,21,24,25,26,27,30,33,34,35,36,37,52)]
 head(loans) ## see newly created data table
 
 ## check which covariates R recognizes as factors
@@ -171,4 +171,43 @@ for(b in 1:B){
 ## plot histogram
 hist(bootgamma,col=rgb(1,0,0,.5),freq=FALSE,xlim=c(-.0006,-.0004),
 	ylim=c(0,20000),xlab="lambda",main="Histogram of Selected Lambdas")
+
+## Principal Components
+library(maptpx)
+loans_less_int <- loans[,-3]
+loans_less_int
+summary(factor(loans_less_int$term))
+f.loans_less_int <- factor(loans_less_int$term)
+f.loans_less_int
+head(factor(f.loans_less_int))
+
+x <- as.simple_triplet_matrix(loans_less_int)
+x2 <- transform(race=factor(race))
+
+loansTopics <- topics(x,K=2:25)
+help(topics)
+pcloans <- prcomp(x, scale = TRUE)
+plot(pcloans)
+mtext(side=1, "FX Principle Components",  line=1, font=2)
+summary(pcfx)
+factored_loans_less_int <- factor(loans_less_int)
+
+predict(pcfx)[,1:2]
+zpcfx <- predict(pcfx)
+plot(zpcfx[,1:2], main="")
+#PC1 Furthest points
+round(zpcfx[order(zpcfx[,1])[1:10],1],1)
+round(zpcfx[order(-zpcfx[,1])[1:10],1],1)
+
+
+
+
+
+
+
+
+
+
+
+
 
