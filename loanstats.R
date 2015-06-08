@@ -1,23 +1,23 @@
 ## Lending Club Loan Stats 2015 - Final Project
 
 ## SETUP
-## read in the data
-loanstats <- read.csv("loanstats.csv",skip=1)
-
-## grab some covariates of interest
-loans <- loanstats[,c(3,6,7,12,13,14,16,21,24,25,26,27,30,33,34,35,36,37,52)]
-head(loans) ## see newly created data table
-
-## check which covariates R recognizes as factors
-class(loans$term) ## example - shows R recognizes "term" as a factor
-
+## read in the data from the trimmed data set that Conor cleaned up
+loans <- read.csv("loanstats_trimmed.csv")
 
 ## DESCRIBE DATA
+# We look at a histogram of the interest rate and loan amounts
 hist(loans$int_rate, col="lightblue", xlab="Interest Rate", main="")
 hist(loans$loan_amnt, col="lightblue", xlab="Loan Amount", main="")
 
+# Next we plot the interest rate for loans that are almost fully drawn and those that
+# are not drawn
 plot(loans$int_rate[loans$revol_util>.95])
 plot(loans$int_rate[loans$revol_util<.05])
+
+## Look at some geo-plots of the data to see if there are any geospatial relationships
+library(maps)
+map('state')
+map('state',c('Hawaii','Alaska'),add=TRUE)
 
 
 ## RUN A REGRESSION
@@ -26,7 +26,7 @@ loanslm <- glm(int_rate~., data=loans)
 
 
 ## OUTLIERS
-## calculate the standardized residuals for loanslm (n-k-1 = 84192) 
+## calculate the standardized residuals for loanslm (n-k-1 = 84192)
 loanslm.sigma.hat <- (loanslm$dev/84192)**0.5
 ## add a column for predicted values to the loans data frame
 loans$predict <- predict(loanslm)
@@ -59,7 +59,7 @@ names(pvals)[pvals<alpha] ## those variable significant at alpha=0.05
 ## Re-run a cut regression using only these 36
 ## [pulled from semiconductor ex - NEED TO DO DIFFERENTLY because we have factors]
 # get names of variables to include
-cutvar <- c("int_rate", rownames(summary(loanslm)$coef)[-1][signif]) 
+cutvar <- c("int_rate", rownames(summary(loanslm)$coef)[-1][signif])
 # run regression on these alone
 loanslm_cut <- glm(int_rate ~ ., data=loans[,cutvar]) ## DOESN'T WORK
 summary(loanslm_cut)
@@ -162,7 +162,7 @@ for(b in 1:B){
 	## run the treatment regression
 	treatb <- gamlr(xb,db)
 	dhatb <- predict(treatb,xb)
-	
+
 	fitb <- gamlr(cBind(db,dhatb,xb),yb,free=2)
 	bootgamma[b] <- coef(fitb)["db",]
 	print(b)
