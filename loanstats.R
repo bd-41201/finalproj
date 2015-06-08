@@ -98,11 +98,12 @@ alpha <- fdr_cut(pvals, .05) ## cutoff
 signif <- which(pvals <= alpha) ## which are significant
 length(signif)  ## the number significant
 names(pvals)[pvals<alpha] ## those variable significant at alpha=0.05
-
+help(names)
 ## Re-run a cut regression using only these 36
 ## [pulled from semiconductor ex - NEED TO DO DIFFERENTLY because we have factors]
 # get names of variables to include
 cutvar <- c("int_rate", rownames(summary(loanslm)$coef)[-1][signif]) 
+cutvar
 # run regression on these alone
 loanslm_cut <- glm(int_rate ~ ., data=loans[,cutvar]) ## DOESN'T WORK
 summary(loanslm_cut)
