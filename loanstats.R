@@ -22,7 +22,13 @@ plot(loans$int_rate[loans$revol_util<.05])
 
 ## RUN A REGRESSION
 loanslm <- glm(int_rate~., data=loans)
+summary(loanslm)
 1 - loanslm$deviance/loanslm$null.deviance ## Calculates R-squared
+
+## RUN A REGRESSION on loans2
+loanslm2 <- glm(int_rate~., data=loans2)
+summary(loanslm2)
+1 - loanslm2$deviance/loanslm2$null.deviance ## Calculates R-squared
 
 
 ## OUTLIERS
@@ -172,10 +178,64 @@ for(b in 1:B){
 hist(bootgamma,col=rgb(1,0,0,.5),freq=FALSE,xlim=c(-.0006,-.0004),
 	ylim=c(0,20000),xlab="lambda",main="Histogram of Selected Lambdas")
 
-## Principal Components
+## Eddie Works Principal Components
 library(maptpx)
+
+
+# Separate Emp Length to transform
+emp_length2 <- loans[,4]
+# Check Class
+class(emp_length2)
+# Change to string
+emp_length2 <- lapply(emp_length2, as.character)
+# Check Class
+class(emp_length2)
+# Make adustments
+emp_length2[emp_length2=="< 1 year"] <- .5
+emp_length2[emp_length2=="> 1 year"] <- 1
+emp_length2[emp_length2=="1 year"] <- 1
+emp_length2[emp_length2=="2 years"] <- 2
+emp_length2[emp_length2=="3 years"] <- 3
+emp_length2[emp_length2=="4 years"] <- 4
+emp_length2[emp_length2=="5 years"] <- 5
+emp_length2[emp_length2=="6 years"] <- 6
+emp_length2[emp_length2=="7 years"] <- 7
+emp_length2[emp_length2=="8 years"] <- 8
+emp_length2[emp_length2=="9 years"] <- 9
+emp_length2[emp_length2=="10+ years"] <- 10
+# Make Numeric
+emp_length3 <- lapply(emp_length2, as.numeric)
+# Unlist it into a vector
+temp = unlist(emp_length3); head(temp)
+# Calculate the mean for that which aren't na
+mean(temp[which(!is.na(temp))])
+# replace those that are na with the mean which is about 6
+temp[is.na(temp)] <- mean(temp[which(!is.na(temp))])
+hist(temp)
+# Create a new loans data frame to load the new column into
+loans2 <- loans
+# store the numeric values and replace the old factors
+loans2[,4] <- temp
+# CHeck it out
+head(loans2)
+
+apply(loans, 2, as.list)
+unique(na.omit(as.numeric(unlist(strsplit(unlist(loans[,-4]), "[^0-9]+")))))
+help(strsplit)
+
 loans_less_int <- loans[,-3]
+head(loans_less_int)
+##divide variables into numeric and factor
+numeric.loans_less_int <- loans_less_int[,]
+
+
 loans_less_int
+
+
+
+
+
+
 summary(factor(loans_less_int$term))
 f.loans_less_int <- factor(loans_less_int$term)
 f.loans_less_int
@@ -198,16 +258,3 @@ plot(zpcfx[,1:2], main="")
 #PC1 Furthest points
 round(zpcfx[order(zpcfx[,1])[1:10],1],1)
 round(zpcfx[order(-zpcfx[,1])[1:10],1],1)
-
-
-
-
-
-
-
-
-
-
-
-
-
