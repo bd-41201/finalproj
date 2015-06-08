@@ -15,9 +15,49 @@ plot(loans$int_rate[loans$revol_util>.95])
 plot(loans$int_rate[loans$revol_util<.05])
 
 ## Look at some geo-plots of the data to see if there are any geospatial relationships
-library(maps)
-map('state')
-map('state',c('Hawaii','Alaska'),add=TRUE)
+## Another method from http://www.bertplot.com/visualization/?p=524
+library(maptools)
+library(mapproj)
+library(rgeos)
+library(rgdal)
+library(ggplot2)
+library(grid)
+library(RColorBrewer)
+
+states50 <-readOGR(dsn='cb_2013_us_state_20m',layer='cb_2013_us_state_20m')
+
+# Change projection
+states50 <- spTransform(states50, CRS("+proj=laea +lat_0=45 +lon_0=-100 +x_0=0 +y_0=0 +a=6370997 +b=6370997 +units=m +no_defs"))
+states50@data$id <- rownames(states50@data)
+
+# Alaska
+alaska <- states50[states50$STATEFP=="02",]
+alaska <- elide(alaska, rotate=-50)
+alaska <- elide(alaska, scale=max(apply(bbox(alaska), 1, diff)) / 2.2)
+alaska <- elide(alaska, shift=c(-2100000, -2500000))
+# Force projection to be that of original plot
+proj4string(alaska) <- proj4string(states50)
+
+# Hawaii
+hawaii <- states50[states50$STATEFP=="15",]
+hawaii <- elide(hawaii, rotate=-35)
+hawaii <- elide(hawaii, shift=c(5400000, -1400000))
+# Force projection to be that of original plot
+proj4string(hawaii) <- proj4string(states50)
+
+# remove old Alaska/Hawaii and also DC, virgin islands, mariana, puerto rico, etc...
+states48 <- states50[!states50$STATEFP %in% c("02", "15", "72","66","60","69","74","78",'11'),]
+states.final <- rbind(states48, alaska, hawaii)
+
+# Prepare to plot
+states.plotting<-fortify(states.final,region='STATEFP')
+
+# Make the plot
+gg <- ggplot()
+gg <- gg + geom_map(data=states.plotting, map=states.plotting,
+                    aes(x=long, y=lat, map_id=id, group=group),
+                    fill=grey(as.integer(states.plotting$id)/56), color="#0e0e0e", size=0.15)
+gg
 
 
 ## RUN A REGRESSION
