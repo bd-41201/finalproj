@@ -3,6 +3,7 @@
 ## SETUP
 ## read in the data from the trimmed data set that Conor cleaned up
 loans <- read.csv("loanstats_trimmed.csv")
+state.fips <- read.csv("fips_table.csv")
 
 ## DESCRIBE DATA
 # We look at a histogram of the interest rate and loan amounts
@@ -45,20 +46,65 @@ hawaii <- elide(hawaii, shift=c(5400000, -1400000))
 # Force projection to be that of original plot
 proj4string(hawaii) <- proj4string(states50)
 
-# remove old Alaska/Hawaii and also DC, virgin islands, mariana, puerto rico, etc...
-states48 <- states50[!states50$STATEFP %in% c("02", "15", "72","66","60","69","74","78",'11'),]
+# remove old Alaska/Hawaii and virgin islands, mariana, puerto rico, etc...but leave DC
+states48 <- states50[!states50$STATEFP %in% c("02", "15", "72","66","60","69","74","78"),]
 states.final <- rbind(states48, alaska, hawaii)
 
+## Old plot stuff ##
 # Prepare to plot
-states.plotting<-fortify(states.final,region='STATEFP')
+#states.plotting<-fortify(states.final,region='id')
 
 # Make the plot
-gg <- ggplot()
-gg <- gg + geom_map(data=states.plotting, map=states.plotting,
-                    aes(x=long, y=lat, map_id=id, group=group),
-                    fill=grey(as.integer(states.plotting$id)/56), color="#0e0e0e", size=0.15)
-gg
+#gg <- ggplot()
+#gg <- gg + geom_map(data=states.plotting, map=states.plotting,
+#                    aes(x=long, y=lat, map_id=STATEFP, group=group),
+#                    fill="#ffffff", color="#0e0e0e", size=0.15)
 
+## Pull the average values by state in order to plot
+loans.state.avg <- aggregate(loans,list(state=loans$addr_state),mean)
+# Add the state FIPS code for plotting
+fips.match <- match(loans.state.avg$state,state.fips$State.Abbreviation)
+loans.state.avg$fips <- state.fips$FIPS.Code[fips.match]
+
+# Some states are missing from the data, let's check
+state.fips[is.na(match(state.fips$State.Abbreviation,loans.state.avg$state)),]
+# There is no data for Iowa, Idaho, Maine, North Dakota, and Nebraska
+
+loans.state.avg$int_rate_b <- as.integer(cut(loans.state.avg$int_rate,5))
+
+
+states.final@data$state <- as.integer(states.final@data$STUSPS)
+trim.data <- with(loans.state.avg, data.frame(fips=fips,state=state,int_rate_b=int_rate_b))
+# Add back the missing states
+add.back <- data.frame(fips=c(19,16,23,38,31),state=c("IA","ID","ME","ND","NE"),int_rate_b=c(NA,NA,NA,NA,NA))
+trim.data <- rbind(trim.data,add.back)
+trim.data <- trim.data[order(as.character(trim.data$state)),]
+states.final@data <- merge(states.final@data,trim.data,by='state',sort=F,all.x=T)
+states.plotting<-fortify(states.final,region='state')
+
+trim.data$id <- 1:51
+
+state.dat<-merge(states.plotting,trim.data,by='id',sort = F,all.x=T)
+
+state.dat <- state.dat[order(state.dat$order),]
+
+ggplot(state.dat)+
+  theme_bw()+
+  theme(axis.ticks = element_blank(),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title.x= element_blank(),
+        axis.title.y= element_blank(),
+        plot.background = element_blank(),
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank(),
+        legend.title=element_text(size=20),
+        legend.text=element_text(size=19),
+        legend.key.size = unit(x = 1.1,units = 'cm'))+
+  geom_polygon(aes(x = long, y = lat,group = group,fill=int_rate_b))+
+  geom_polygon(aes(x = long, y = lat,group = group),fill=NA,colour='white',size=0.5)+
+  scale_fill_gradientn(colours=c("#cccccc", brewer.pal(n=5, name="YlOrRd")),na.value="#000001",name="Interest Rate Bucket")
 
 ## RUN A REGRESSION
 loanslm <- glm(int_rate~., data=loans)
