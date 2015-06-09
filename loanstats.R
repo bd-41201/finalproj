@@ -3,7 +3,7 @@
 ## SETUP
 ## read in the data
 loans <- read.csv("loanstats_trimmed.csv")
-
+class(loans)
 ## grab some covariates of interest
 # loans <- loanstats[,c(3,6,7,12,13,14,16,21,24,25,26,27,30,33,34,35,36,37,52)]
 head(loans) ## see newly created data table
@@ -96,19 +96,21 @@ hist(pvals, xlab="p-value", main="", col="lightblue")
 source("fdr.R")
 alpha <- fdr_cut(pvals, .05) ## cutoff
 signif <- which(pvals <= alpha) ## which are significant
+class(signif)
 length(signif)  ## the number significant
-names(pvals)[pvals<alpha] ## those variable significant at alpha=0.05
-help(names)
+cutvar <- c("FAIL", rownames(summary(loanslm)$coef)[-1][signif]) 
 ## Re-run a cut regression using only these 36
 ## [pulled from semiconductor ex - NEED TO DO DIFFERENTLY because we have factors]
 # get names of variables to include
-cutvar <- c("int_rate", rownames(summary(loanslm)$coef)[-1][signif]) 
-cutvar
+sigcoef2 <- rownames(summary(loanslm)$coef)[-1][signif]
 # run regression on these alone
-loanslm_cut <- glm(int_rate ~ ., data=loans[,cutvar]) ## DOESN'T WORK
-summary(loanslm_cut)
-# new in-sample R2: drops to
-1 - loanslm_cut$deviance/loanslm_cut$null.deviance
+####Waiting on Piazza response
+cut <- glm(FAIL ~ ., data=loans[,cutvar], family="binomial")
+
+
+
+
+
 
 
 ## LASSO REGRESSION
