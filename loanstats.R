@@ -90,7 +90,8 @@ trim.data <- trim.data[order(as.character(trim.data$state)),]
 states.final@data <- merge(states.final@data,trim.data,by='state',sort=F,all.x=T)
 states.plotting<-fortify(states.final,region='state')
 
-trim.data$id <- 1:51
+# Something is weird with geo data so need to skip id 40 otherwise certain states mis-labeled
+trim.data$id <- c(1:39,41:52)
 
 state.dat<-merge(states.plotting,trim.data,by='id',sort = F,all.x=T)
 
@@ -110,7 +111,7 @@ ggplot(state.dat)+
         legend.title=element_text(size=16),
         legend.text=element_text(size=14),
         legend.key.size = unit(x = 0.8,units = 'cm'))+
-  geom_polygon(aes(x = long, y = lat,group = group,fill=int_rate_b))+
+  geom_polygon(aes(x = long, y = lat,group = group,fill=state.dat$int_rate_b))+
   geom_polygon(aes(x = long, y = lat,group = group),fill=NA,colour='white',size=0.5)+
   scale_fill_gradientn(colours=c("#cccccc", brewer.pal(n=5, name="YlOrRd")),na.value="#000001",
     name="Interest Rate Bucket",labels=c("11.9-12.2%","12.21-12.6%","12.61-12.9%","12.91-13.2%","13.21-13.6%"))+
