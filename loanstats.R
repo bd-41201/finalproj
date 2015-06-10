@@ -147,7 +147,7 @@ pvals <- summary(loanslm)$coef[-1,4] #-1 to drop the intercept
 hist(pvals, xlab="p-value", main="", col="lightblue")
 
 ## At 5% FDR, we get 36 `signif'
-source("fdr.R")
+source("../Utility Scripts/fdr.R")
 alpha <- fdr_cut(pvals, .05) ## cutoff
 signif <- which(pvals <= alpha) ## which are significant
 length(signif)  ## the number significant
@@ -240,6 +240,39 @@ coef(causal)["d",]
 ## beta is -0.00049 (close to naive estimate), meaning that
 ## total credit lines has a causal effect.
 
+## Random Forest Approx of dhat
+library(gamlr)
+# from the projec file the naive value of beta on total credit lines is -0.00040
+source("../Utility Scripts/naref.R")
+mmloans <- sparse.model.matrix(int_rate ~ ., data=naref(loans))[,-1]
+y <- loans$int_rate
+# a new model matrix excluding total_acc
+xmm <- mmloans[, -grep("total_acc",colnames(mmloans))]
+# replicate for the random forest
+x <- loans[,c(1:2,4:9,11:17)]
+## pull total_acc out as a separate vector (treatment)
+d <- loans[, 18]
+
+## step 1: fit the random forest for Total Credit Lines on x.
+## said another way, predict total_acc from all other covariates
+treat.rf <- randomForest(y=d,x=x, ntree=250, nodesize=1000)
+## grab predicted dhat from fitted betas
+dhat.rf <- predict(treat.rf)
+## compare d vs. dhat
+plot(dhat.rf,d,bty="n",pch=21,bg=8,main="Total Credit Lines Treatment Effect")
+## calculate in sample R-squared for the d on x regression
+cor(drop(dhat.rf),d)^2
+# ~> [1] 0.5366338
+
+## step 2: using the gamma lasso algorithm from class, we just put dhat into
+## the model without any penalty (using the free argument).
+## Re-run lasso to estimate independent effect of Total Credit Lines
+causal <- gamlr(cBind(d,dhat.rf,xmm),y,free=2)
+## calculate beta
+coef(causal)["d",]
+# ~> [1] -0.000375905
+# So we see there is a very small causal effect that each additional credit account
+# decreases your expected interest rate by 0.038%
 
 ## BOOTSTRAP
 
