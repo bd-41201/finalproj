@@ -98,20 +98,21 @@ alpha <- fdr_cut(pvals, .05) ## cutoff
 signif <- which(pvals <= alpha) ## which are significant
 class(signif)
 length(signif)  ## the number significant
+
 cutvar <- c("FAIL", rownames(summary(loanslm)$coef)[-1][signif]) 
+
 ## Re-run a cut regression using only these 36
 ## [pulled from semiconductor ex - NEED TO DO DIFFERENTLY because we have factors]
 # get names of variables to include
-sigcoef2 <- rownames(summary(loanslm)$coef)[-1][signif]
 # run regression on these alone
-####Waiting on Piazza response
-cut <- glm(FAIL ~ ., data=loans[,cutvar], family="binomial")
 
-
-
-
-
-
+head(loans)
+xnumeric <- model.matrix( int_rate~ ., data=loans)[,-1]
+colnames(xnumeric)
+xsignif <- xnumeric[, c(FALSE, signif)] 
+xSignifDF <- data.frame(xsignif)
+xSignifDF
+cut <- glm(loans$int_rate ~ signif, data=xSignifDF, family="binomial")
 
 ## LASSO REGRESSION
 
@@ -221,11 +222,8 @@ hist(bootgamma,col=rgb(1,0,0,.5),freq=FALSE,xlim=c(-.0006,-.0004),
 ## Eddie Works Principal Components
 library(maptpx)
 
-
-
-
-
-
+mmloans <- model.matrix(y ~ x + catVar,binom) 
+help(model.matrix)
 
 summary(factor(loans_less_int$term))
 f.loans_less_int <- factor(loans_less_int$term)
