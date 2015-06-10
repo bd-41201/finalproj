@@ -222,28 +222,33 @@ hist(bootgamma,col=rgb(1,0,0,.5),freq=FALSE,xlim=c(-.0006,-.0004),
 ## Eddie Works Principal Components
 library(maptpx)
 
-mmloans <- model.matrix(y ~ x + catVar,binom) 
-help(model.matrix)
+colnames(xnumeric)
+df.xnumeric <- data.frame(xnumeric)
+#principle components
+pcloans <- prcomp(df.xnumeric, scale=TRUE)
+plot(pcloans, main="")
+mtext(side=1, "Loans Principle Components",  line=1, font=2)
 
-summary(factor(loans_less_int$term))
-f.loans_less_int <- factor(loans_less_int$term)
-f.loans_less_int
-head(factor(f.loans_less_int))
+loanspc <- predict(pcloans) 
+class(loanspc)
+head(loanspc)
+plot(loanspc[,1:2], main="")
 
-x <- as.simple_triplet_matrix(loans_less_int)
-x2 <- transform(race=factor(race))
+# Top/Bottom 5 observations
+d <- 2
+round(loanspc[order(loanspc[,d])[1:5],d],3)
+round(loanspc[order(-loanspc[,d])[1:5],d],3)
 
-loansTopics <- topics(x,K=2:25)
-help(topics)
-pcloans <- prcomp(x, scale = TRUE)
-plot(pcloans)
-mtext(side=1, "FX Principle Components",  line=1, font=2)
-summary(pcfx)
-factored_loans_less_int <- factor(loans_less_int)
+# Analysis of top 5
+loans[45984, ]
+loans[45298, ]
+loans[45650, ]
+loans[17058, ]
+loans[50483, ]
 
-predict(pcfx)[,1:2]
-zpcfx <- predict(pcfx)
-plot(zpcfx[,1:2], main="")
-#PC1 Furthest points
-round(zpcfx[order(zpcfx[,1])[1:10],1],1)
-round(zpcfx[order(-zpcfx[,1])[1:10],1],1)
+# Analysis of bottom 5
+loans[63910, ]
+loans[25023, ]
+loans[30353, ]
+loans[81153, ]
+loans[12779, ]
