@@ -7,13 +7,31 @@ state.fips <- read.csv("fips_table.csv")
 
 ## DESCRIBE DATA
 # We look at a histogram of the interest rate and loan amounts
+# png('int_rate_hist_w_mean.png')
 hist(loans$int_rate, col="lightblue", xlab="Interest Rate", main="")
+abline(v=mean(loans$int_rate),col="red")
+legend(x=0.2,y=8000,c("Count","Mean = 0.129"),lty=c(1,1),col=c("lightblue","red"))
+# dev.off()
+
+# png('loan_amnt_hist_w_mean.png')
 hist(loans$loan_amnt, col="lightblue", xlab="Loan Amount", main="")
+abline(v=mean(loans$loan_amnt),col="red")
+legend(x=22500,y=9000,c("Count","Mean = $15,300"),lty=c(1,1),col=c("lightblue","red"))
+# dev.off()
 
 # Next we plot the interest rate for loans that are almost fully drawn and those that
 # are not drawn
-plot(loans$int_rate[loans$revol_util>.95])
-plot(loans$int_rate[loans$revol_util<.05])
+png('int_rate_05_w_mean.png')
+hist(loans$int_rate[loans$revol_util<.05],col="lightblue", xlab="Interest Rate",main="")
+abline(v=mean(loans$int_rate[loans$revol_util<.05]),col="red")
+legend(x=0.18,y=225,c("Count","Mean = 0.119"),lty=c(1,1),col=c("lightblue","red"))
+dev.off()
+
+png('int_rate_95_w_mean.png')
+hist(loans$int_rate[loans$revol_util>.95],col="lightblue", xlab="Interest Rate",main="")
+abline(v=mean(loans$int_rate[loans$revol_util>.95]),col="red")
+legend(x=0.18,y=600,c("Count","Mean = 0.144"),lty=c(1,1),col=c("lightblue","red"))
+dev.off()
 
 ## Look at some geo-plots of the data to see if there are any geospatial relationships
 ## Another method from http://www.bertplot.com/visualization/?p=524
