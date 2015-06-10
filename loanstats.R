@@ -21,17 +21,17 @@ legend(x=22500,y=9000,c("Count","Mean = $15,300"),lty=c(1,1),col=c("lightblue","
 
 # Next we plot the interest rate for loans that are almost fully drawn and those that
 # are not drawn
-png('int_rate_05_w_mean.png')
+# png('int_rate_05_w_mean.png')
 hist(loans$int_rate[loans$revol_util<.05],col="lightblue", xlab="Interest Rate",main="")
 abline(v=mean(loans$int_rate[loans$revol_util<.05]),col="red")
 legend(x=0.18,y=225,c("Count","Mean = 0.119"),lty=c(1,1),col=c("lightblue","red"))
-dev.off()
+# dev.off()
 
-png('int_rate_95_w_mean.png')
+# png('int_rate_95_w_mean.png')
 hist(loans$int_rate[loans$revol_util>.95],col="lightblue", xlab="Interest Rate",main="")
 abline(v=mean(loans$int_rate[loans$revol_util>.95]),col="red")
 legend(x=0.18,y=600,c("Count","Mean = 0.144"),lty=c(1,1),col=c("lightblue","red"))
-dev.off()
+# dev.off()
 
 ## Look at some geo-plots of the data to see if there are any geospatial relationships
 ## Another method from http://www.bertplot.com/visualization/?p=524
@@ -67,16 +67,6 @@ proj4string(hawaii) <- proj4string(states50)
 # remove old Alaska/Hawaii and virgin islands, mariana, puerto rico, etc...but leave DC
 states48 <- states50[!states50$STATEFP %in% c("02", "15", "72","66","60","69","74","78"),]
 states.final <- rbind(states48, alaska, hawaii)
-
-## Old plot stuff ##
-# Prepare to plot
-#states.plotting<-fortify(states.final,region='id')
-
-# Make the plot
-#gg <- ggplot()
-#gg <- gg + geom_map(data=states.plotting, map=states.plotting,
-#                    aes(x=long, y=lat, map_id=STATEFP, group=group),
-#                    fill="#ffffff", color="#0e0e0e", size=0.15)
 
 ## Pull the average values by state in order to plot
 loans.state.avg <- aggregate(loans,list(state=loans$addr_state),mean)
@@ -117,12 +107,14 @@ ggplot(state.dat)+
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank(),
         panel.border = element_blank(),
-        legend.title=element_text(size=20),
-        legend.text=element_text(size=19),
-        legend.key.size = unit(x = 1.1,units = 'cm'))+
+        legend.title=element_text(size=16),
+        legend.text=element_text(size=14),
+        legend.key.size = unit(x = 0.8,units = 'cm'))+
   geom_polygon(aes(x = long, y = lat,group = group,fill=int_rate_b))+
   geom_polygon(aes(x = long, y = lat,group = group),fill=NA,colour='white',size=0.5)+
-  scale_fill_gradientn(colours=c("#cccccc", brewer.pal(n=5, name="YlOrRd")),na.value="#000001",name="Interest Rate Bucket")
+  scale_fill_gradientn(colours=c("#cccccc", brewer.pal(n=5, name="YlOrRd")),na.value="#000001",
+    name="Interest Rate Bucket",labels=c("11.9-12.2%","12.21-12.6%","12.61-12.9%","12.91-13.2%","13.21-13.6%"))+
+  annotate("text",x=-388560.8,y=-2500000,label="*States shown in black had no borrowers in the data set")
 
 ## RUN A REGRESSION
 loanslm <- glm(int_rate~., data=loans)
