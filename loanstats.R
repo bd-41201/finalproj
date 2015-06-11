@@ -246,6 +246,56 @@ coef(causal)["d",]
 ## beta is -0.00049 (close to naive estimate), meaning that
 ## total credit lines has a causal effect.
 
+## Try to establish causal link for purpose:credit card
+# the naive value of beta on total credit lines
+coef(cv.loans)["purposecredit_card",] # -0.00040
+
+## a new model matrix excluding total_acc
+x <- mmloans[, -grep("purposecredit_card",colnames(mmloans))]
+## pull total_acc out as a separate vector (treatment)
+d <- mmloans[, "purposecredit_card"]
+
+## step 1: fit the treatment regression for Total Credit Lines on x.
+## said another way, predict total_acc from all other covariates
+treat <- gamlr(x,d)
+## grab predicted dhat from fitted betas
+dhat <- predict(treat, x, type="response")
+## compare d vs. dhat
+plot(dhat,d,bty="n",pch=21,bg=8,main="Purpose = Credit Card Lines Treatment Effect")
+## calculate in sample R-squared for the d on x regression
+cor(drop(dhat),d)^2
+# ~> [1] 0.9995688
+## Because the purpose is closely linked to the other parameters, there is no
+## independent causal effect to measure.
+
+## Same thing but for MA
+# the naive value of beta on total credit lines
+coef(cv.loans)["addr_stateMA",] # -0.00040
+
+## a new model matrix excluding total_acc
+x <- mmloans[, -grep("addr_stateMA",colnames(mmloans))]
+## pull total_acc out as a separate vector (treatment)
+d <- mmloans[, "addr_stateMA"]
+
+## step 1: fit the treatment regression for Total Credit Lines on x.
+## said another way, predict total_acc from all other covariates
+treat <- gamlr(x,d)
+## grab predicted dhat from fitted betas
+dhat <- predict(treat, x, type="response")
+## compare d vs. dhat
+plot(dhat,d,bty="n",pch=21,bg=8,main="Total Credit Lines Treatment Effect")
+## calculate in sample R-squared for the d on x regression
+cor(drop(dhat),d)^2
+
+## step 2: using the double-lasso algorithm from class, we just put dhat into
+## the model without any penalty (using the free argument).
+## Re-run lasso to estimate independent effect of Total Credit Lines
+causal <- gamlr(cBind(d,dhat,x),y,free=2)
+## calculate beta
+coef(causal)["d",]
+## beta is -0.00049 (close to naive estimate), meaning that
+## total credit lines has a causal effect.
+
 ## Random Forest Approx of dhat
 library(gamlr)
 # from the projec file the naive value of beta on total credit lines is -0.00040
