@@ -165,7 +165,7 @@ cut <- glm(loans$int_rate ~ ., data=xSignifDF)
 ## LASSO REGRESSION
 
 library(gamlr)
-source("naref.R")
+source("../Utility Scripts/naref.R")
 mmloans <- sparse.model.matrix(int_rate ~ ., data=naref(loans))[,-1]
 y <- loans$int_rate # pull out `y' too just for convenience
 
@@ -210,6 +210,12 @@ legend("topright", bty="n", lwd=1,
 ## print the top three int_rate effects
 print(coef(cv.loans, select="1se"))
 
+## Model with state interactions
+mmloans.int <- sparse.model.matrix(int_rate ~ .*addr_state, data=naref(loans))[,-1]
+cv.loans.int <- cv.gamlr(mmloans.int, y, lmr=1e-4, verb=TRUE )
+plot(cv.loans.int,main="OOS R-Squared for CV Lasso")
+summary(cv.loans.int)[cv.loans.int$seg.1se,]
+coef(cv.loans.int, select="1se")
 
 ## CAUSAL TREATMENT EFFECTS
 
