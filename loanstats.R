@@ -419,3 +419,81 @@ max(1-wineregclust$cvm/wineregclust$cvm[1]) # OOS R2
 # find the OOS R-Squared
 summary(wineregclust)[wineregclust$seg.min,] # min avg OOS R2
 summary(wineregclust)[wineregclust$seg.1se,] # 1se rule
+
+# RUN A REGRESSION ***************loans2****************
+# Try emp length as an integer instead of a factor
+  # Separate Emp Length to transform
+  emp_length2 <- loans[,4]
+  # Check Class
+  class(emp_length2)
+  # Change to string
+  emp_length2 <- lapply(emp_length2, as.character)
+  # Check Class
+  class(emp_length2)
+  # Make adustments
+  emp_length2[emp_length2=="< 1 year"] <- .5
+  emp_length2[emp_length2=="> 1 year"] <- 1
+  emp_length2[emp_length2=="1 year"] <- 1
+  emp_length2[emp_length2=="2 years"] <- 2
+  emp_length2[emp_length2=="3 years"] <- 3
+  emp_length2[emp_length2=="4 years"] <- 4
+  emp_length2[emp_length2=="5 years"] <- 5
+  emp_length2[emp_length2=="6 years"] <- 6
+  emp_length2[emp_length2=="7 years"] <- 7
+  emp_length2[emp_length2=="8 years"] <- 8
+  emp_length2[emp_length2=="9 years"] <- 9
+  emp_length2[emp_length2=="10+ years"] <- 10
+  # Make Numeric
+  emp_length3 <- lapply(emp_length2, as.numeric)
+  # Unlist it into a vector
+  temp = unlist(emp_length3); head(temp)
+  # Calculate the mean for that which aren't na
+  mean(temp[which(!is.na(temp))])
+  # replace those that are na with the mean which is about 6
+  temp[is.na(temp)] <- mean(temp[which(!is.na(temp))])
+  hist(temp)
+  # Create a new loans data frame to load the new column into
+  loans2 <- loans
+  # store the numeric values and replace the old factors
+  loans2[,4] <- temp
+  # Check it out
+  head(loans2)
+  # Run the regression
+  loanslm2 <- glm(int_rate~., data=loans2)
+  summary(loanslm2)
+  1 - loanslm2$deviance/loanslm2$null.deviance ## Calculates R-squared
+  ## [1] 0.4550834
+
+## Eddie Works Principal Components
+library(maptpx)
+
+colnames(xnumeric)
+df.xnumeric <- data.frame(xnumeric)
+#principle components
+pcloans <- prcomp(df.xnumeric, scale=TRUE)
+plot(pcloans, main="")
+mtext(side=1, "Loans Principle Components",  line=1, font=2)
+
+loanspc <- predict(pcloans)
+class(loanspc)
+head(loanspc)
+plot(loanspc[,1:2], main="")
+
+# Top/Bottom 5 observations
+d <- 2
+round(loanspc[order(loanspc[,d])[1:5],d],3)
+round(loanspc[order(-loanspc[,d])[1:5],d],3)
+
+# Analysis of top 5
+loans[45984, ]
+loans[45298, ]
+loans[45650, ]
+loans[17058, ]
+loans[50483, ]
+
+# Analysis of bottom 5
+loans[63910, ]
+loans[25023, ]
+loans[30353, ]
+loans[81153, ]
+loans[12779, ]
