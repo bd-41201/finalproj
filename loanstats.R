@@ -248,10 +248,11 @@ coef(causal)["d",]
 
 ## Try to establish causal link for purpose:credit card
 # the naive value of beta on total credit lines
-coef(cv.loans)["purposecredit_card",] # -0.00040
+coef(cv.loans)["purposecredit_card",] # -0.0156622
 
-## a new model matrix excluding total_acc
-x <- mmloans[, -grep("purposecredit_card",colnames(mmloans))]
+## a new model matrix excluding all purposes
+# essentially the treatment condition is purpose = credit card (1) or not credit card (0)
+x <- mmloans[,c(1:23,37:90)]
 ## pull total_acc out as a separate vector (treatment)
 d <- mmloans[, "purposecredit_card"]
 
@@ -260,41 +261,42 @@ d <- mmloans[, "purposecredit_card"]
 treat <- gamlr(x,d)
 ## grab predicted dhat from fitted betas
 dhat <- predict(treat, x, type="response")
-## compare d vs. dhat
-plot(dhat,d,bty="n",pch=21,bg=8,main="Purpose = Credit Card Lines Treatment Effect")
 ## calculate in sample R-squared for the d on x regression
 cor(drop(dhat),d)^2
-# ~> [1] 0.9995688
-## Because the purpose is closely linked to the other parameters, there is no
-## independent causal effect to measure.
+# ~> [1] 0.03269671
+## R2 is low so there is a large amount of independent effect
 
-## Same thing but for MA
-# the naive value of beta on total credit lines
-coef(cv.loans)["addr_stateMA",] # -0.00040
-
-## a new model matrix excluding total_acc
-x <- mmloans[, -grep("addr_stateMA",colnames(mmloans))]
-## pull total_acc out as a separate vector (treatment)
-d <- mmloans[, "addr_stateMA"]
-
-## step 1: fit the treatment regression for Total Credit Lines on x.
-## said another way, predict total_acc from all other covariates
-treat <- gamlr(x,d)
-## grab predicted dhat from fitted betas
-dhat <- predict(treat, x, type="response")
-## compare d vs. dhat
-plot(dhat,d,bty="n",pch=21,bg=8,main="Total Credit Lines Treatment Effect")
-## calculate in sample R-squared for the d on x regression
-cor(drop(dhat),d)^2
-
-## step 2: using the double-lasso algorithm from class, we just put dhat into
-## the model without any penalty (using the free argument).
-## Re-run lasso to estimate independent effect of Total Credit Lines
+## step 2: Re-run lasso to estimate independent effect of purpose = credit card
 causal <- gamlr(cBind(d,dhat,x),y,free=2)
 ## calculate beta
 coef(causal)["d",]
-## beta is -0.00049 (close to naive estimate), meaning that
-## total credit lines has a causal effect.
+## beta is -0.0178163 (close to naive estimate), meaning that selecting credit card as the purpose
+## has a causal negative effect
+
+## Same thing but for MA
+# the naive value of beta on state is MA
+coef(cv.loans)["addr_stateMA",] # -0.0006740097
+
+## a new model matrix excluding all states
+x <- mmloans[,c(1:37,83:90)]
+## pull state = MA out as a separate vector (treatment)
+d <- mmloans[, "addr_stateMA"]
+
+## step 1: first gamlr to estimate dhat
+treat <- gamlr(x,d)
+## grab predicted dhat from fitted betas
+dhat <- predict(treat, x, type="response")
+## calculate in sample R-squared for the d on x regression
+cor(drop(dhat),d)^2
+# ~> [1] 0.004069205
+
+## step 2: estimate independent effect
+causal <- gamlr(cBind(d,dhat,x),y,free=2)
+## calculate beta
+coef(causal)["d",]
+# ~> [1] -0.002510113
+## beta is the same directionally but larger but it does appear that being an
+## applicant from MA decreases your expected interest rate by 0.25%
 
 ## Random Forest Approx of dhat
 library(gamlr)
