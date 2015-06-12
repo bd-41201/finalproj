@@ -358,3 +358,64 @@ for(b in 1:B){
 hist(bootgamma,col=rgb(1,0,0,.5),freq=FALSE,xlim=c(-.0006,-.0004),
 	ylim=c(0,20000),xlab="lambda",main="Histogram of Selected Lambdas")
 
+## Gilad's Fit K-means exercise
+Cleanloans <- loanstats
+Cleanloans[,c("int_rate")] <- list(NULL)
+
+sstats<-sparse.model.matrix(~.,data=Cleanloans)
+kfit <- lapply((1:120), function(k) kmeans(sstats,k))
+source("C:/Users/gilad_000/Desktop/R/SourceFiles/kIC.R")
+kaicc <- sapply(kfit,kIC)
+kbic <- sapply(kfit,kIC,"B")
+
+## plot 'em
+plot((1:120), kaicc, xlab="K", ylab="IC",
+     ylim=range(c(kaicc,kbic)),
+     bty="n", type="l", lwd=2)
+abline(v=which.min(kaicc))
+lines((1:120), kbic, col=4, lwd=2)
+abline(v=which.min(kbic),col=4)
+
+#Let's Look at R^2
+k=20
+1 - sum(kfit[[k]]$tot.withinss)/kfit[[k]]$totss
+
+#How does interest rate varies across clusters? not much based on this histagram
+hist(df,col=rgb(1,0,0,.5), xlab="Interest Rate",main="Frequency of Average Interest Rates Per Cluster")
+
+## look also at interest average average by cluster
+df<-tapply(loans$int_rate,kfit[[k]]$cluster,mean)
+head(df)
+
+#Now let's regress interest rates on clusters; don't be alarmed by all the wine lingo- it is all code scrapes from class
+xclust <- sparse.model.matrix(~factor(kfit[[k]]$cluster)) # cluster membership matrix
+wineregclust <- cv.gamlr(xclust,loans$int_rate,lambda.min.ratio=1e-5) #
+plot(wineregclust)
+max(1-wineregclust$cvm/wineregclust$cvm[1]) # OOS R2
+
+# find the OOS R-Squared
+summary(wineregclust)[wineregclust$seg.min,] # min avg OOS R2
+summary(wineregclust)[wineregclust$seg.1se,] # 1se rule
+
+
+#Now the same analysis for K=20
+k=114
+#Let's Look at R^2
+1 - sum(kfit[[k]]$tot.withinss)/kfit[[k]]$totss
+
+#How does interest rate varies across clusters? not much based on this histagram
+hist(df,col=rgb(1,0,0,.5), xlab="Interest Rate",main="Frequency of Average Interest Rates Per Cluster")
+
+## look also at interest average average by cluster
+df<-tapply(loans$int_rate,kfit[[k]]$cluster,mean)
+head(df)
+
+#Now let's regress interest rates on clusters; don't be alarmed by all the wine lingo- it is all code scrapes from class
+xclust <- sparse.model.matrix(~factor(kfit[[k]]$cluster)) # cluster membership matrix
+wineregclust <- cv.gamlr(xclust,loans$int_rate,lambda.min.ratio=1e-5) #
+plot(wineregclust)
+max(1-wineregclust$cvm/wineregclust$cvm[1]) # OOS R2
+
+# find the OOS R-Squared
+summary(wineregclust)[wineregclust$seg.min,] # min avg OOS R2
+summary(wineregclust)[wineregclust$seg.1se,] # 1se rule
